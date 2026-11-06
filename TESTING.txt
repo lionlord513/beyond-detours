@@ -1,0 +1,30 @@
+Beyond Detours 0.1.0 experimental — verification record
+Drive Beyond Horizons Steam build 26437602, Unreal 5.2.1
+
+Automated checks
+- All bundled Lua sources compile.
+- 1,000 deterministic route cases reproduce identical geometry and POI choices for identical input. The tested seeds/sides produced 1,000 distinct point sequences.
+- Curved-path samples remain monotonic away from the junction, with bounded grades. Tests cover native distance/height/slope eligibility, one-time landmark exclusion, relative weights, per-branch repetition prevention, unavailable terrain, cliffs and JSON round trips.
+- Transport tests cover version checks, session isolation, host plan transfer, periodic resend after client culling and reset.
+- Native adapter regression tests revoke borrowed array storage after enumeration. The adapter retains owned parameter/transform snapshots, passes the serialized native world path, spawns only on the host and deduplicates stable level names.
+
+Native game checks in isolated game directories and saves
+- The game generated and rendered a 337 m winding branch for seed 1142371841 using SM_Road_A5 and the active native road material. Its rounded head brings the rendered surface to roughly 368 m.
+- The final 19-component road passed 148 downward collision samples with zero misses and a minimum upward surface normal of 0.9941. This checks surface continuity, not a full vehicle handling test.
+- L_CowField_B was separately loaded through LSLevelSpawnerComponent:AddLevel using the developer's reference parameters. The generated route selected L_CowField_A from the native weighted pool.
+- A fresh world registered that native POI successfully. Repeated spawn checks did not duplicate it. A borrowed native struct/soft-pointer lifetime error found during this check was fixed before packaging and covered by the regression test above.
+- A native save and cold restart reconstructed the branch with one stable detour POI descriptor.
+- A localhost listen host and guest exchanged the same complete route plan. All 19 reconstructed spline meshes matched in positions, tangents, native mesh, collision mode and material parent; the replicated POI path and stable identity also matched. Per-process dynamic material instance names naturally differ.
+- The guest began outside the road's rendering radius. Its received plan was explicitly reconstructed for geometry comparison by a test observer, then removed normally. This is not a claim of a complete guest driving test.
+- The lit overview image was captured in-game. It is not a mockup.
+
+Packaging and isolation
+- Beyond Mod Manager recognized the independent identity/version and UE4SS-only dependency. Install/reinstall tests preserved this mod's layout state and left an unrelated mod fixture unchanged.
+- Release contents are restricted to BeyondDetours and its documentation. No loader binaries, native game artwork, personal saves, generated route caches, QA dispatchers or QA network DLLs are shipped.
+- The existing installation was inventoried before work. Installation verification checks all 925 original mod/loader files byte for byte; only the new BeyondDetours directory is added.
+
+Limits
+- This remains an experimental first release. The in-game sample is one seed; the 1,000-seed sweep tests the pure planner with synthetic terrain, not 1,000 complete native worlds.
+- Extended driving with different vehicles, long-distance world streaming, dense POI combinations, distant progression, Steam friend joins and combinations with other mods still need playtesting. Other mods were deliberately neither edited nor included in the isolated runtime tests.
+- The localhost test uses an isolated native-socket adapter, absent from the release. Direct console joining from the menu bypassed native save initialization and caused a native game crash; the successful join first initialized a solo world. This does not establish normal Steam matchmaking compatibility.
+- Native POIs can remain in a save after the mod is removed. See README.md for removal guidance.
