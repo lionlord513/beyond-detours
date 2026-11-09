@@ -1,30 +1,48 @@
-Beyond Detours 0.1.0 experimental — verification record
-Drive Beyond Horizons Steam build 26437602, Unreal 5.2.1
+Beyond Detours 0.1.1 experimental — verification record
+2026-11-09 | Drive Beyond Horizons Steam build 26437602 / Unreal 5.2.1
 
-Automated checks
+Automated checks (final source)
 - All bundled Lua sources compile.
-- 1,000 deterministic route cases reproduce identical geometry and POI choices for identical input. The tested seeds/sides produced 1,000 distinct point sequences.
-- Curved-path samples remain monotonic away from the junction, with bounded grades. Tests cover native distance/height/slope eligibility, one-time landmark exclusion, relative weights, per-branch repetition prevention, unavailable terrain, cliffs and JSON round trips.
-- Transport tests cover version checks, session isolation, host plan transfer, periodic resend after client culling and reset.
-- Native adapter regression tests revoke borrowed array storage after enumeration. The adapter retains owned parameter/transform snapshots, passes the serialized native world path, spawns only on the host and deduplicates stable level names.
+- 1,000 deterministic dead-end planner cases and 200 deterministic forward-connection cases pass, including geometry, native POI eligibility/weights, endpoint direction, JSON round trips and lower-density subset selection.
+- Native adapter checks cover borrowed-struct lifetime, native parameters and transforms, stable POI identity, host-only registration and the inverse native LevelSpawn slider mapping.
+- Network checks cover version/session mismatch, complete host plan transfer including banking and signs, resend after culling, host-withheld roads and replacement of guest geometry after a host terrain refit.
+- Surface checks cover hills between nodes and across the road width, bounded elevation repair, static obstacles and incremental validation. Native calls run on the registered game-thread Lua state, never a Lua coroutine.
 
-Native game checks in isolated game directories and saves
-- The game generated and rendered a 337 m winding branch for seed 1142371841 using SM_Road_A5 and the active native road material. Its rounded head brings the rendered surface to roughly 368 m.
-- The final 19-component road passed 148 downward collision samples with zero misses and a minimum upward surface normal of 0.9941. This checks surface continuity, not a full vehicle handling test.
-- L_CowField_B was separately loaded through LSLevelSpawnerComponent:AddLevel using the developer's reference parameters. The generated route selected L_CowField_A from the native weighted pool.
-- A fresh world registered that native POI successfully. Repeated spawn checks did not duplicate it. A borrowed native struct/soft-pointer lifetime error found during this check was fixed before packaging and covered by the regression test above.
-- A native save and cold restart reconstructed the branch with one stable detour POI descriptor.
-- A localhost listen host and guest exchanged the same complete route plan. All 19 reconstructed spline meshes matched in positions, tangents, native mesh, collision mode and material parent; the replicated POI path and stable identity also matched. Per-process dynamic material instance names naturally differ.
-- The guest began outside the road's rendering radius. Its received plan was explicitly reconstructed for geometry comparison by a test observer, then removed normally. This is not a claim of a complete guest driving test.
-- The lit overview image was captured in-game. It is not a mockup.
+Actual game: isolated directories and save profiles
+- Fresh seed 959412353: a 1,306 m forward connection rejoined native road index 6 from index 4. Its three native POIs (Phone Booth, Dodane NRV and Bomb) registered and initialized through the native level spawner. An accompanying 687 m round dead end registered and initialized Rock Natural C and Cow Field A.
+- Terrain changed after native POIs streamed. A final survey and a 10 m lateral adjustment made the connection fit without moving either junction or any POI. The runtime now performs this final fit before displaying a road; failed candidates remain withheld.
+- The loop has 87 native spline mesh components; the round dead end has 40. Post-streaming clearance checks passed 1,990 and 1,085 terrain samples respectively. Interior-pavement collision checks hit road geometry at all 1,740 loop samples and all 800 dead-end samples. These finite samples are not a proof covering every displaced pixel or future terrain LOD.
+- The tapered cul-de-sac tip now scales native camber with its width. The prior fixed-height cross-section produced a steep ridge as it narrowed. The final sample's minimum normal Z was 0.497 at the dead-end surface versus 0.920 on the loop. The very tip/outer edge still needs vehicle handling playtests; collision hits alone do not establish comfortable drivability.
+- Actual in-game orthographic capture confirms a round paved turnaround. Native asphalt and markings were checked in lit captures; the exit board uses a geometric arrow along increasing highway index. The construction-sign code uses native board geometry with readable text, but its final appearance on a naturally generated construction ending has not been visually verified.
+- Repeated build calls reused the same owned road actors. Final counts were one PRRoadState, one RoadManager, one SantorLandscape and one SLLandscapeGenerator, with zero duplicate spline-influencer addresses. No duplicate whole-world generation was reproduced.
+- The highway's VStretch stayed 41.9529037476 before/after detour builds. The material fix creates independent dynamic materials instead of changing the shared native material returned by CreateDynamicMaterialInstance.
+- The copied affected 0.1.0 save restored its repaired 4_R road on cold launch. Its original registered POIs retained their identities. The unsafe 4_L legacy road is withheld; its saved Zombie and Bus Stop remain. No unrelated actor or player structure was deleted. The original user save remains byte-identical to its backup.
+- A native save of the fresh 0.1.1 test world was cold-loaded into a new isolated process. Both roads and all five initialized POI descriptors returned with the same identities and zero new registration attempts. Final post-load checks again found 87/40 mesh components, no duplicate influencers and no mod Lua errors.
+
+Root causes and limits of diagnosis
+- Source inspection found that the previous road height influencer could change terrain beneath existing objects, while removing a road removed that influence. This version follows sampled terrain and disables height influence.
+- Generated native foliage was being mistaken for solid terrain obstructions. The terrain sampler now recognizes only native landscape meshes as ground; accepted corridors clear only native SLLandscapePCG instances. Ordinary structures, POI actors and player objects are preserved.
+- The in-progress validator used a Lua coroutine, which UE4SS rejected for native calls and consequently withheld roads. Explicit game-thread work cursors replaced it.
+- The validator could run before POI registration settled and prevent a pending road from ever becoming ready. Readiness, final terrain fitting and visibility now follow that order; blocked routes can retry safely.
+- These findings explain observed failure mechanisms, not every possible floating object in every seed or mod combination.
+
+Performance evidence
+- On the same isolated host/branch, narrowing the repeated native-foliage scan reduced two empty cleanup measurements from 1,583/2,167 ms to 92/65 ms. This is CPU time for one cleanup operation, not whole-game frame time or FPS.
+- Repeated maintenance uses bounded batches. Native level descriptors are registered together to reserve spacing; the native proximity streamer controls loaded POI actors. No FPS improvement is claimed.
+
+Multiplayer
+- Automated transport/geometry consistency checks pass. The 0.1.1 localhost guest join attempted from both an affected save and a freshly initialized solo world returned to the menu. Therefore live 0.1.1 host/guest reconstruction and Steam matchmaking are NOT verified by this run.
+- The earlier 0.1.0 localhost success is not presented as 0.1.1 evidence. The QA socket adapter is absent from all deliverables.
+- Use identical 0.1.1 versions on host and guests. A real host/guest drive, reconnect, save reload and distant POI streaming test remain required before treating multiplayer as release-validated.
 
 Packaging and isolation
-- Beyond Mod Manager recognized the independent identity/version and UE4SS-only dependency. Install/reinstall tests preserved this mod's layout state and left an unrelated mod fixture unchanged.
-- Release contents are restricted to BeyondDetours and its documentation. No loader binaries, native game artwork, personal saves, generated route caches, QA dispatchers or QA network DLLs are shipped.
-- The existing installation was inventoried before work. Installation verification checks all 925 original mod/loader files byte for byte; only the new BeyondDetours directory is added.
+- Deliverables contain only BeyondDetours source/runtime files and documentation. No native game artwork, loader binaries, other mods, QA dispatchers, QA socket DLL, personal saves or generated route caches are included.
+- Existing 0.1.0 release archives are retained. No public release is published or replaced.
+- Beyond Mod Manager recognized the independent 0.1.1 identity with UE4SS as its only dependency. Install/reinstall tests passed, preserving the route-state fixture and leaving an unrelated mod fixture unchanged. The user's production installation is unchanged; the ZIP is ready for manual installation or manager import.
+- All 1,133 non-changing entries from the earlier 1,137-file other-mod/loader inventory still match. Four other-mod runtime state files had already changed on November 8, before this resumed work; they were left untouched. Other mods' source, configuration and installations were not edited.
 
-Limits
-- This remains an experimental first release. The in-game sample is one seed; the 1,000-seed sweep tests the pure planner with synthetic terrain, not 1,000 complete native worlds.
-- Extended driving with different vehicles, long-distance world streaming, dense POI combinations, distant progression, Steam friend joins and combinations with other mods still need playtesting. Other mods were deliberately neither edited nor included in the isolated runtime tests.
-- The localhost test uses an isolated native-socket adapter, absent from the release. Direct console joining from the menu bypassed native save initialization and caused a native game crash; the successful join first initialized a solo world. This does not establish normal Steam matchmaking compatibility.
-- Native POIs can remain in a save after the mod is removed. See README.md for removal guidance.
+Remaining playtests
+- Extended driving over junction seams, round tips and construction endings with different vehicles.
+- Additional terrain/biome/LOD combinations, long-distance streaming and naturally occurring route ratios at different slider settings.
+- Multiplayer and combinations with other mods, which were deliberately excluded from the isolated game directories.
+- Unsafe old corridors can remain unavailable rather than cut through terrain. Existing saved POIs are preserved even where a legacy road cannot be repaired safely.

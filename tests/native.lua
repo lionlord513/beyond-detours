@@ -13,15 +13,19 @@ local entry={RandomWeight=.5,MinSpawnDistance=0,MinSpawnHeight=0,MaxSpawnHeight=
 local asset={IsValid=function()return true end,MaximumSpawn=1,SideOffset=2000,Levels={ForEach=function(_,callback)
  callback(1,{get=function()return borrowed(entry)end});alive=false
 end}}
-LoadAsset=function()return asset end
+LoadAsset=function(path)if path:find('SM_Road_A5',1,true)then return{IsValid=function()return false end}end;return asset end
 local S={Conv_SoftObjectReferenceToString=function(_,v)return{ToString=function()return v end}end}
 local M={ComposeTransforms=function(_,localTransform,worldTransform)
  assert(localTransform.Rotation.W==1 and localTransform.Scale3D.X==1)
  return worldTransform
 end}
-StaticFindObject=function(name)if name:find('KismetSystem',1,true)then return S elseif name:find('KismetMath',1,true)then return M else return{}end end
-local D={planner=P,valid=function(o)return o and o:IsValid()end,log=function()end}
+local slider=.2
+local helper={GetDifficultyDenormalized=function()return{LevelSpawn=6+(.2-6)*slider}end,GetDifficultySaveGame=function()return{DifficultyValue={LevelSpawn={X=6,Y=.2}}}end}
+StaticFindObject=function(name)if name:find('KismetSystem',1,true)then return S elseif name:find('KismetMath',1,true)then return M elseif name:find('DBHHelper',1,true)then return helper else return{}end end
+local D={root=root..'/mod/BeyondDetours',planner=P,valid=function(o)return o and o:IsValid()end,log=function()end}
 local N=dofile(root..'/mod/BeyondDetours/Scripts/native.lua')(D)
+local densityContext={spawner={DBHSaveGame={IsValid=function()return true end}}}
+for _,value in ipairs({0,.2,.5,1})do slider=value;assert(math.abs(N.density(densityContext)-value)<1e-9,'Native inverse spacing was mistaken for spawn chance')end
 N.loadPool();assert(N.byPath[path].weight==.5)
 local names={};local calls=0
 local spawner={LevelsRep={ForEach=function(_,callback)

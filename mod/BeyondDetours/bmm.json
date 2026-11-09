@@ -1,9 +1,9 @@
 {
   "Id": "beyonddetours",
   "Name": "Beyond Detours",
-  "Version": "0.1.0",
+  "Version": "0.1.1",
   "Channel": "experimental",
-  "Description": "Seeded winding dead-end side roads with native Drive Beyond Horizons POIs.",
+  "Description": "Seeded winding detours, forward connections and varied dead ends with native POIs.",
   "Dependencies": ["UE4SS"],
   "Preserve": ["DriveBeyondHorizons/Binaries/Win64/ue4ss/Mods/BeyondDetours/state"]
 }

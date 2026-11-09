@@ -1,6 +1,9 @@
 -- Standalone transport using native owning-controller RPCs; no other mod is required.
 return function(D)
  local N={peers={},hooks={},ready=false};local prefix='BDTR1 ';local G=StaticFindObject('/Script/Engine.Default__GameplayStatics')
+ local function geometry(p)
+  return D.json.encode({origin=p.origin,yaw=p.yaw,side=p.side,points=p.points,rolls=p.rolls,ending=p.ending,capHalf=p.capHalf,capHeights=p.capHeights,exitSignZ=p.exitSignZ,constructionSignZ=p.constructionSignZ,target=p.target})
+ end
  local function clock()return D.ctx and G:GetTimeSeconds(D.ctx.player)or 0 end
  local function send(pc,p)
   local bytes=prefix..D.json.encode(p);assert(#bytes<30000,'Detour packet too large')
@@ -28,6 +31,8 @@ return function(D)
    local plan=D.planner.validate(p.plan)
    assert(plan.seed==ctx.seed and plan.pool==D.native.signature,'Host road does not match this world')
    for _,poi in ipairs(plan.pois)do assert(D.native.byPath[poi.path],'Host sent a non-native POI')end
+   local built=D.native.records and D.native.records[plan.key]
+   if built and(plan.blocked or plan.poiReady~=true or(built.plan and geometry(built.plan)~=geometry(plan)))then D.native.remove(ctx,plan.key)end
    D.plans[plan.key]=plan
   end
  end
@@ -54,8 +59,12 @@ return function(D)
      if D.valid(p)then
       local at=p:K2_GetActorLocation()
       for key,plan in pairs(D.plans)do
-       local dx,dy=plan.origin.x-at.X,plan.origin.y-at.Y
-       if dx*dx+dy*dy<200000^2 and(not peer.sent[key]or t-peer.sent[key]>15)then
+       local nearby=false
+       for _,q in ipairs(plan.points)do
+        local w=D.native.worldPoint(plan,q);local dx,dy=w.x-at.X,w.y-at.Y
+        if dx*dx+dy*dy<200000^2 then nearby=true;break end
+       end
+       if nearby and(not peer.sent[key]or t-peer.sent[key]>15)then
         send(peer.pc,{op='plan',session=ctx.world,plan=plan});peer.sent[key]=t;break
        end
       end
