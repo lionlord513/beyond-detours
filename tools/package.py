@@ -27,4 +27,6 @@ with zipfile.ZipFile(source,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
             if p.is_file() and p.suffix in {'.py','.lua','.md'}:z.write(p,'BeyondDetours/'+p.relative_to(root).as_posix())
     for name in ('README.md','TESTING.txt'):z.write(root/name,'BeyondDetours/'+name)
 (out/'SHA256SUMS.txt').write_text(''.join(f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n' for p in (release,source)),encoding='utf-8')
+manifest={'schema':1,'version':version,'channel':'beta','asset':release.name,'size':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),'notes':[meta.get('Changelog','Beyond Detours experimental release.')]}
+(out/'bmm-mod.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
 print(release);print(source)
