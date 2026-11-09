@@ -22,9 +22,9 @@ with zipfile.ZipFile(release) as z:
 source=out/f'BeyondDetours-{version}-source.zip'
 with zipfile.ZipFile(source,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
     for p in sorted(files):z.write(p,'BeyondDetours/'+p.relative_to(root).as_posix())
-    for folder in ('tests','tools'):
+    for folder in ('tests','tools','docs'):
         for p in sorted((root/folder).rglob('*')):
-            if p.is_file() and p.suffix in {'.py','.lua'}:z.write(p,'BeyondDetours/'+p.relative_to(root).as_posix())
+            if p.is_file() and p.suffix in {'.py','.lua','.md'}:z.write(p,'BeyondDetours/'+p.relative_to(root).as_posix())
     for name in ('README.md','TESTING.txt'):z.write(root/name,'BeyondDetours/'+name)
 (out/'SHA256SUMS.txt').write_text(''.join(f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n' for p in (release,source)),encoding='utf-8')
 print(release);print(source)

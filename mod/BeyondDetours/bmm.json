@@ -1,9 +1,23 @@
 {
   "Id": "beyonddetours",
   "Name": "Beyond Detours",
-  "Version": "0.1.1",
+  "Version": "0.1.2",
   "Channel": "experimental",
-  "Description": "Seeded winding detours, forward connections and varied dead ends with native POIs.",
-  "Dependencies": ["UE4SS"],
-  "Preserve": ["DriveBeyondHorizons/Binaries/Win64/ue4ss/Mods/BeyondDetours/state"]
+  "Description": "Explore winding side roads, roadside stops and dead ends.",
+  "Dependencies": [
+    "UE4SS"
+  ],
+  "Preserve": [
+    "DriveBeyondHorizons/Binaries/Win64/ue4ss/Mods/BeyondDetours/state"
+  ],
+  "Changelog": "Simplified the player guide and added Beyond Mod Manager updates. Road generation is unchanged.",
+  "Update": {
+    "Provider": "github",
+    "Repository": "lionlord513/beyond-detours",
+    "TagPrefix": "v",
+    "AssetPattern": "BeyondDetours-{version}-experimental.zip",
+    "ManifestAsset": "bmm-mod.json",
+    "Sha256Asset": "SHA256SUMS.txt",
+    "Kind": "mod"
+  }
 }

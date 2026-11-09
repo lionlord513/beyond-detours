@@ -1,7 +1,7 @@
 local root=assert(debug.getinfo(1,'S').source:sub(2):gsub('\\','/'):match('^(.*)/Scripts/[^/]+$'))
 local previous=_G.BeyondDetours
 if previous then previous.active=false;if previous.dropRoads then pcall(previous.dropRoads)end;for _,timer in ipairs({previous.timer,previous.maintenanceTimer})do pcall(CancelDelayedAction,timer)end end
-local D={version='0.1.1',root=root,active=true,queue={},plans={},attempts={},errors={}}
+local D={version='0.1.2',root=root,active=true,queue={},plans={},attempts={},errors={}}
 function D.valid(o)return o and o:IsValid()end
 function D.log(s)print('[Beyond Detours] '..tostring(s)..'\n')end
 function D.enqueue(f)if D.active and not D.travelling and #D.queue<64 then D.queue[#D.queue+1]=f end end
