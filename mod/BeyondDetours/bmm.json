@@ -1,7 +1,7 @@
 {
   "Id": "beyonddetours",
   "Name": "Beyond Detours",
-  "Version": "0.1.2",
+  "Version": "0.1.3",
   "Channel": "experimental",
   "Description": "Explore winding side roads, roadside stops and dead ends.",
   "Dependencies": [
@@ -10,7 +10,7 @@
   "Preserve": [
     "DriveBeyondHorizons/Binaries/Win64/ue4ss/Mods/BeyondDetours/state"
   ],
-  "Changelog": "Simplified the player guide and added Beyond Mod Manager updates. Road generation is unchanged.",
+  "Changelog": "Fixed Beyond Mod Manager rejecting the experimental update feed. The mod remains experimental.",
   "Update": {
     "Provider": "github",
     "Repository": "lionlord513/beyond-detours",

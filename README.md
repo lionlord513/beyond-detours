@@ -1,4 +1,4 @@
-# Beyond Detours 0.1.2 — Experimental
+# Beyond Detours 0.1.3 — Experimental
 
 Explore winding side roads with buildings, fields and roadside encounters. Most new routes reconnect with the highway; some end at a turnaround or construction barrier. The game's POI chance slider controls how often new junctions appear. Terrain can prevent a road from spawning.
 
@@ -21,6 +21,9 @@ To disable, use Beyond Mod Manager or remove `enabled.txt` while the game is clo
 Experimental, tested against Steam build 26437602. Roads can be hidden when the terrain or nearby objects leave insufficient clearance. Live multiplayer remains unverified: the previous local join test returned to the menu. See TESTING.txt for results and outstanding checks.
 
 ## Changes
+
+### 0.1.3
+- Fixed Beyond Mod Manager rejecting the experimental update feed.
 
 ### 0.1.2
 - Shortened the player guide.
